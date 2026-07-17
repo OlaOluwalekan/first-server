@@ -1,0 +1,12 @@
+{
+  "todos": [
+    {
+      "id": "e331e17b-4700-4a39-8f34-b36924098878",
+      "title": "New Todo",
+      "description": "Description for new todo",
+      "completed": true,
+      "createdAt": "2026-07-17T16:01:37.918Z",
+      "updatedAt": "2026-07-17T16:01:37.918Z"
+    }
+  ]
+}
