@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { readTodos, writeTodos } from '../utils/todos'
 import statusCodes from 'http-status-codes'
 import { todoSchema } from '../models/todo.model'
-import { TodoPayload, TodoResponse } from '../types/todos.interface'
+import { TodoResponse } from '../types/todos.interface'
 import { v4 as uuid } from 'uuid'
 
 export const getAllTodos = async (req: Request, res: Response) => {
@@ -25,7 +25,9 @@ export const createTodo = async (req: Request, res: Response) => {
     const body = req.body
     const parsedBody = todoSchema.safeParse(body)
     if (!parsedBody.success) {
-      throw new Error('Invalid request body')
+      return res
+        .status(statusCodes.BAD_REQUEST)
+        .json({ success: false, error: 'Invalid request body', data: null })
     }
 
     const existingTodos = await readTodos()

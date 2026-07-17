@@ -37,7 +37,9 @@ const createTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const body = req.body;
         const parsedBody = todo_model_1.todoSchema.safeParse(body);
         if (!parsedBody.success) {
-            throw new Error('Invalid request body');
+            return res
+                .status(http_status_codes_1.default.BAD_REQUEST)
+                .json({ success: false, error: 'Invalid request body', data: null });
         }
         const existingTodos = yield (0, todos_1.readTodos)();
         const newTodo = Object.assign(Object.assign({ id: (0, uuid_1.v4)() }, parsedBody.data), { createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
