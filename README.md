@@ -1,6 +1,8 @@
 # First Server API
 
-A lightweight **RESTful Todo API** built with **Express** and **TypeScript**. Todos are persisted as JSON on [Cloudinary](https://cloudinary.com), validated with [Zod](https://zod.dev), and fully documented through a built-in **Swagger UI**.
+A lightweight **RESTful Todo API** built with **Express** and **TypeScript**. Validated with [Zod](https://zod.dev) and fully documented through a built-in **Swagger UI**.
+
+Todos are stored using a **dual-storage strategy**: the app uses [Cloudinary](https://cloudinary.com) as a remote JSON store when the relevant env vars are provided, and falls back to a **local `data/db.json` file** automatically when they are not — no code changes required.
 
 ---
 
@@ -11,7 +13,7 @@ A lightweight **RESTful Todo API** built with **Express** and **TypeScript**. To
 | Runtime     | Node.js + TypeScript                         |
 | Framework   | Express 5                                    |
 | Validation  | Zod                                          |
-| Storage     | Cloudinary (raw JSON upload)                 |
+| Storage     | Cloudinary _or_ local `data/db.json` (auto-detected) |
 | Docs        | Swagger UI Express                           |
 | Dev tooling | `tsc --watch` + `nodemon` via `concurrently` |
 
@@ -29,7 +31,11 @@ pnpm install
 
 ### 2. Configure environment
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root. The app auto-detects which storage backend to use at startup:
+
+#### Option A — Cloudinary (remote, recommended for production)
+
+Provide **all five** of the following variables:
 
 ```env
 CLOUDINARY_CLOUD_NAME=your_cloud_name
@@ -38,6 +44,22 @@ CLOUDINARY_API_SECRET=your_api_secret
 CLOUDINARY_JSON_FILE_URL=https://res.cloudinary.com/.../<file>.json
 CLOUDINARY_PUBLIC_ID=your_public_id
 ```
+
+When the server starts you will see:
+```
+📦 Storage: Cloudinary
+```
+
+#### Option B — Local JSON file (zero config, great for local dev)
+
+Leave the Cloudinary variables unset (or omit the `.env` file entirely). The app will automatically create and use `data/db.json` at the project root.
+
+When the server starts you will see:
+```
+💾 Storage: Local file (data/db.json) — set Cloudinary env vars to switch
+```
+
+> `data/` is git-ignored so it will never be committed.
 
 ### 3. Run in development
 
@@ -132,17 +154,23 @@ Interactive API documentation is available at **http://localhost:3000/api/docs**
 ```
 first-server/
 ├── src/
-│   ├── controllers/     # Route handlers
-│   ├── docs/            # OpenAPI JSON spec
-│   ├── models/          # Zod schemas
-│   ├── routes/          # Express routers
-│   ├── templates/       # EJS views (index.ejs)
-│   ├── types/           # TypeScript interfaces
-│   ├── utils/           # File read/write helpers
-│   └── server.ts        # App entry point
-├── dist/                # Compiled output (git-ignored)
-├── docs/                # Project assets (screenshots etc.)
-├── .env                 # Environment variables (git-ignored)
+│   ├── controllers/         # Route handlers
+│   ├── docs/                # OpenAPI JSON spec
+│   ├── models/              # Zod schemas
+│   ├── routes/              # Express routers
+│   ├── templates/           # EJS views (index.ejs)
+│   ├── types/               # TypeScript interfaces
+│   ├── utils/
+│   │   ├── adapters/
+│   │   │   ├── cloudinary.ts  # Cloudinary read/write adapter
+│   │   │   └── local.ts       # Local filesystem adapter
+│   │   ├── file.ts            # Storage dispatcher (auto-selects adapter)
+│   │   └── todos.ts           # Todo-specific read/write helpers
+│   └── server.ts            # App entry point
+├── data/                    # Local JSON database (auto-created, git-ignored)
+├── dist/                    # Compiled output
+├── docs/                    # Project assets (screenshots etc.)
+├── .env                     # Environment variables (git-ignored)
 ├── tsconfig.json
 └── package.json
 ```
