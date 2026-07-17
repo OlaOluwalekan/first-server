@@ -1,38 +1,48 @@
-import { v2 as cloudinary } from 'cloudinary'
-import axios from 'axios'
+import { cloudinaryReadJson, cloudinaryWriteJson } from './adapters/cloudinary'
+import { localReadJson, localWriteJson } from './adapters/local'
 
-// Configure Cloudinary credentials
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-})
-const cloudinaryJsonFileUrl = process.env.CLOUDINARY_JSON_FILE_URL
-const cloudinaryPublicId = process.env.CLOUDINARY_PUBLIC_ID
+/**
+ * Returns true when all four Cloudinary env variables are present.
+ * If any are missing the app falls back to the local JSON file adapter.
+ */
+const isCloudinaryConfigured = (): boolean => {
+  return !!(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET &&
+    process.env.CLOUDINARY_JSON_FILE_URL &&
+    process.env.CLOUDINARY_PUBLIC_ID
+  )
+}
 
-export const readJsonFile = async () => {
+const useCloudinary = isCloudinaryConfigured()
+
+if (useCloudinary) {
+  console.log('📦 Storage: Cloudinary')
+} else {
+  console.log('💾 Storage: Local file (data/db.json) — set Cloudinary env vars to switch')
+}
+
+export const readJsonFile = async (): Promise<any> => {
   try {
-    const { data } = await axios.get(cloudinaryJsonFileUrl as string)
-
-    return data
+    if (useCloudinary) {
+      return await cloudinaryReadJson()
+    }
+    return await localReadJson()
   } catch (error) {
     console.log('Error reading file ==>', error)
-    return null
+    return { todos: [] }
   }
 }
 
-export const writeToJsonFile = async (newData: any) => {
+export const writeToJsonFile = async (newData: any): Promise<void> => {
   try {
-    const newDataString = JSON.stringify(newData, null, 2)
-    const base64Data = `data:application/json;base64,${Buffer.from(newDataString).toString('base64')}`
-
-    await cloudinary.uploader.upload(base64Data, {
-      public_id: cloudinaryPublicId,
-      resource_type: 'raw',
-      overwrite: true,
-      invalidate: true,
-    })
+    if (useCloudinary) {
+      await cloudinaryWriteJson(newData)
+    } else {
+      await localWriteJson(newData)
+    }
   } catch (error) {
-    console.log('Error writing to cloudinary file ==>', error)
+    console.log('Error writing to file ==>', error)
   }
 }
