@@ -6,13 +6,13 @@ A lightweight **RESTful Todo API** built with **Express** and **TypeScript**. To
 
 ## Tech Stack
 
-| Layer | Library |
-|---|---|
-| Runtime | Node.js + TypeScript |
-| Framework | Express 5 |
-| Validation | Zod |
-| Storage | Cloudinary (raw JSON upload) |
-| Docs | Swagger UI Express |
+| Layer       | Library                                      |
+| ----------- | -------------------------------------------- |
+| Runtime     | Node.js + TypeScript                         |
+| Framework   | Express 5                                    |
+| Validation  | Zod                                          |
+| Storage     | Cloudinary (raw JSON upload)                 |
+| Docs        | Swagger UI Express                           |
 | Dev tooling | `tsc --watch` + `nodemon` via `concurrently` |
 
 ---
@@ -22,7 +22,7 @@ A lightweight **RESTful Todo API** built with **Express** and **TypeScript**. To
 ### 1. Clone & install
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/OlaOluwalekan/first-server.git
 cd first-server
 pnpm install
 ```
@@ -55,13 +55,13 @@ Server starts at **http://localhost:3000**.
 
 Base URL: `http://localhost:3000`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/todos` | Retrieve all todos |
-| `POST` | `/api/todos` | Create a new todo |
-| `GET` | `/api/todos/:id` | Get a single todo by ID |
-| `PUT` | `/api/todos/:id` | Update a todo by ID |
-| `DELETE` | `/api/todos/:id` | Delete a todo by ID |
+| Method   | Endpoint         | Description             |
+| -------- | ---------------- | ----------------------- |
+| `GET`    | `/api/todos`     | Retrieve all todos      |
+| `POST`   | `/api/todos`     | Create a new todo       |
+| `GET`    | `/api/todos/:id` | Get a single todo by ID |
+| `PUT`    | `/api/todos/:id` | Update a todo by ID     |
+| `DELETE` | `/api/todos/:id` | Delete a todo by ID     |
 
 ### Request body (POST / PUT)
 
