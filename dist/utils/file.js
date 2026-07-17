@@ -8,45 +8,52 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writeToJsonFile = exports.readJsonFile = void 0;
-const cloudinary_1 = require("cloudinary");
-const axios_1 = __importDefault(require("axios"));
-// Configure Cloudinary credentials
-cloudinary_1.v2.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-const cloudinaryJsonFileUrl = process.env.CLOUDINARY_JSON_FILE_URL;
-const cloudinaryPublicId = process.env.CLOUDINARY_PUBLIC_ID;
+const cloudinary_1 = require("./adapters/cloudinary");
+const local_1 = require("./adapters/local");
+/**
+ * Returns true when all four Cloudinary env variables are present.
+ * If any are missing the app falls back to the local JSON file adapter.
+ */
+const isCloudinaryConfigured = () => {
+    return !!(process.env.CLOUDINARY_CLOUD_NAME &&
+        process.env.CLOUDINARY_API_KEY &&
+        process.env.CLOUDINARY_API_SECRET &&
+        process.env.CLOUDINARY_JSON_FILE_URL &&
+        process.env.CLOUDINARY_PUBLIC_ID);
+};
+const useCloudinary = isCloudinaryConfigured();
+if (useCloudinary) {
+    console.log('📦 Storage: Cloudinary');
+}
+else {
+    console.log('💾 Storage: Local file (data/db.json) — set Cloudinary env vars to switch');
+}
 const readJsonFile = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { data } = yield axios_1.default.get(cloudinaryJsonFileUrl);
-        return data;
+        if (useCloudinary) {
+            return yield (0, cloudinary_1.cloudinaryReadJson)();
+        }
+        return yield (0, local_1.localReadJson)();
     }
     catch (error) {
         console.log('Error reading file ==>', error);
-        return null;
+        return { todos: [] };
     }
 });
 exports.readJsonFile = readJsonFile;
 const writeToJsonFile = (newData) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const newDataString = JSON.stringify(newData, null, 2);
-        const base64Data = `data:application/json;base64,${Buffer.from(newDataString).toString('base64')}`;
-        yield cloudinary_1.v2.uploader.upload(base64Data, {
-            public_id: cloudinaryPublicId,
-            resource_type: 'raw',
-            overwrite: true,
-            invalidate: true,
-        });
+        if (useCloudinary) {
+            yield (0, cloudinary_1.cloudinaryWriteJson)(newData);
+        }
+        else {
+            yield (0, local_1.localWriteJson)(newData);
+        }
     }
     catch (error) {
-        console.log('Error writing to cloudinary file ==>', error);
+        console.log('Error writing to file ==>', error);
     }
 });
 exports.writeToJsonFile = writeToJsonFile;
